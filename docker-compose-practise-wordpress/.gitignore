@@ -1,0 +1,6 @@
+
+# ignoring wp-content folder as it is buildable from docker image.
+/wp-content/plugins/
+/wp-content/themes/
+/wp-content/uploads/
+index.php
