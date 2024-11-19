@@ -6,8 +6,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.CurrentTimestamp;
-import org.springframework.data.annotation.CreatedDate;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
@@ -28,4 +27,5 @@ public class Bookmark {
   private String description;
 
   @CreationTimestamp private Instant creationDate;
+  @UpdateTimestamp private Instant updatedTimestamp;
 }

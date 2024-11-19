@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/bookmarks")
@@ -20,19 +20,21 @@ public class BookmarkController {
 
   @Autowired BookmarkRepository bookmarkRepository;
 
-  @GetMapping(value = {"", "/{bookmarkId}"})
-  ResponseEntity<List<Bookmark>> fetchBookmarks(@PathVariable(required = false) String bookmarkId) {
+  @GetMapping
+  ResponseEntity<List<Bookmark>> fetchBookmarks() {
     List<Bookmark> bookmarkList = new ArrayList<>();
-
-    if (Objects.nonNull(bookmarkId)) {
-      log.info("fetching bookmark: " + bookmarkId);
-      bookmarkRepository.findById(bookmarkId).ifPresent(bookmarkList::add);
-    } else {
-      bookmarkRepository.findAll().iterator().forEachRemaining(bookmarkList::add);
-    }
-
+    bookmarkRepository.findAll().iterator().forEachRemaining(bookmarkList::add);
     log.info("fetched bookmarks: " + bookmarkList);
     return ResponseEntity.ok(bookmarkList);
+  }
+
+  @GetMapping("/{bookmarkId}")
+  ResponseEntity<Bookmark> fetchBookmarkById(@PathVariable String bookmarkId) {
+    log.info("fetching bookmark: " + bookmarkId);
+    return bookmarkRepository
+        .findById(bookmarkId)
+        .map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @PostMapping(
@@ -51,18 +53,42 @@ public class BookmarkController {
       value = "/{bookmarkId}",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  ResponseEntity<String> updateCompleteBookmark(@PathVariable String bookmarkId) {
+  ResponseEntity<Bookmark> updateCompleteBookmark(
+      @PathVariable String bookmarkId, @RequestBody Bookmark bookmarkPayload) {
+    log.info("payload received: " + bookmarkPayload);
+
+    Optional<Bookmark> bookmarkOptional = bookmarkRepository.findById(bookmarkId);
+
+    if (bookmarkOptional.isEmpty()) return ResponseEntity.notFound().build();
+
+    Bookmark bookmark = bookmarkOptional.get();
+    bookmark.setUrl(bookmarkPayload.getUrl());
+    bookmark.setTitle(bookmarkPayload.getTitle());
+    bookmark.setDescription(bookmarkPayload.getDescription());
+
     log.info("updating bookmark: " + bookmarkId);
-    return ResponseEntity.ok("Updated bookmark id " + bookmarkId + ". Update bookmark info.");
+    return ResponseEntity.ok().body(bookmarkRepository.save(bookmark));
   }
 
   @PatchMapping(
       value = "/{bookmarkId}",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  ResponseEntity<String> partiallyUpdateBookmark(@PathVariable String bookmarkId) {
+  ResponseEntity<Bookmark> partiallyUpdateBookmark(
+      @PathVariable String bookmarkId, @RequestBody Bookmark bookmarkPayload) {
+    log.info("payload received: " + bookmarkPayload);
+
+    Optional<Bookmark> bookmarkOptional = bookmarkRepository.findById(bookmarkId);
+
+    if (bookmarkOptional.isEmpty()) return ResponseEntity.notFound().build();
+
+    Bookmark bookmark = bookmarkOptional.get();
+    Optional.ofNullable(bookmarkPayload.getUrl()).ifPresent(bookmark::setUrl);
+    Optional.ofNullable(bookmarkPayload.getTitle()).ifPresent(bookmark::setTitle);
+    Optional.ofNullable(bookmarkPayload.getDescription()).ifPresent(bookmark::setDescription);
+
     log.info("patching bookmark: " + bookmarkId);
-    return ResponseEntity.ok("Updated bookmark id " + bookmarkId + ". Update bookmark info.");
+    return ResponseEntity.ok().body(bookmarkRepository.save(bookmark));
   }
 
   @DeleteMapping("/{bookmarkId}")
