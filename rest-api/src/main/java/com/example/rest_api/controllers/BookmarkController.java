@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/bookmarks")
+@RequestMapping("/api/v1/bookmarks")
 @Log
 public class BookmarkController {
 
