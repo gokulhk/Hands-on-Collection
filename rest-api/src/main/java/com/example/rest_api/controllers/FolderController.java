@@ -36,7 +36,7 @@ public class FolderController {
   @PostMapping(
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  ResponseEntity<Folder> createFolder(@RequestBody Bookmark folderPayload) {
+  ResponseEntity<Folder> createFolder(@RequestBody Folder folderPayload) {
     return ResponseEntity.created(URI.create("/{folderId}")).body(new Folder());
   }
 
@@ -44,7 +44,7 @@ public class FolderController {
       value = "/{folderId}",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  ResponseEntity<Folder> updateCompleteFolder(@RequestBody Bookmark folderPayload) {
+  ResponseEntity<Folder> updateCompleteFolder(@RequestBody Folder folderPayload) {
     return ResponseEntity.ok(new Folder());
   }
 
@@ -52,7 +52,7 @@ public class FolderController {
       value = "/{folderId}",
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  ResponseEntity<Folder> partiallyUpdateFolder(@RequestBody Bookmark folderPayload) {
+  ResponseEntity<Folder> partiallyUpdateFolder(@RequestBody Folder folderPayload) {
     return ResponseEntity.ok(new Folder());
   }
 

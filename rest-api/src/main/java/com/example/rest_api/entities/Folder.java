@@ -22,6 +22,7 @@ public class Folder {
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
+  private String name;
   private List<Bookmark> bookmarkList;
 
   @CreationTimestamp private Instant creationDate;
