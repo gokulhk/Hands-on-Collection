@@ -2,8 +2,8 @@ package com.example.restapi.controllers;
 
 import com.example.restapi.entities.Bookmark;
 import com.example.restapi.repositories.BookmarkRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
