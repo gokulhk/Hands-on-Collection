@@ -1,7 +1,7 @@
-package com.example.rest_api.controllers;
+package com.example.restapi.controllers;
 
-import com.example.rest_api.entities.Bookmark;
-import com.example.rest_api.repositories.BookmarkRepository;
+import com.example.restapi.entities.Bookmark;
+import com.example.restapi.repositories.BookmarkRepository;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -15,10 +15,11 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/bookmarks")
+@RequiredArgsConstructor
 @Log
 public class BookmarkController {
 
-  @Autowired BookmarkRepository bookmarkRepository;
+  private final BookmarkRepository bookmarkRepository;
 
   @GetMapping
   ResponseEntity<List<Bookmark>> fetchBookmarks() {

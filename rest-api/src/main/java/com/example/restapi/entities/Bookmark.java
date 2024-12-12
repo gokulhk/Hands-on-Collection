@@ -1,4 +1,4 @@
-package com.example.rest_api.entities;
+package com.example.restapi.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
-import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -17,13 +16,15 @@ import java.util.List;
 @ToString
 @Setter
 @Getter
-public class Folder {
+public class Bookmark {
+
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
-  private String name;
-  private List<Bookmark> bookmarkList;
+  private String title;
+  private String url;
+  private String description;
 
   @CreationTimestamp private Instant creationDate;
   @UpdateTimestamp private Instant updatedTimestamp;

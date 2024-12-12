@@ -1,6 +1,6 @@
-package com.example.rest_api.repositories;
+package com.example.restapi.repositories;
 
-import com.example.rest_api.entities.Bookmark;
+import com.example.restapi.entities.Bookmark;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
