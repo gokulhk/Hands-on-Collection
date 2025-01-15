@@ -1,7 +1,7 @@
 package com.example.restapi.controllers;
 
 import com.example.restapi.entities.Bookmark;
-import com.example.restapi.repositories.BookmarkRepository;
+import com.example.restapi.services.BookmarkService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.http.MediaType;
@@ -9,9 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/bookmarks")
@@ -19,83 +17,55 @@ import java.util.Optional;
 @Log
 public class BookmarkController {
 
-  private final BookmarkRepository bookmarkRepository;
+    private final BookmarkService bookmarkService;
 
-  @GetMapping
-  ResponseEntity<List<Bookmark>> fetchBookmarks() {
-    List<Bookmark> bookmarkList = new ArrayList<>();
-    bookmarkRepository.findAll().iterator().forEachRemaining(bookmarkList::add);
-    log.info("fetched bookmarks: " + bookmarkList);
-    return ResponseEntity.ok(bookmarkList);
-  }
+    @GetMapping
+    ResponseEntity<List<Bookmark>> fetchBookmarks() {
+        return ResponseEntity.ok(bookmarkService.fetchBookmarks());
+    }
 
-  @GetMapping("/{bookmarkId}")
-  ResponseEntity<Bookmark> fetchBookmarkById(@PathVariable String bookmarkId) {
-    log.info("fetching bookmark: " + bookmarkId);
-    return bookmarkRepository
-        .findById(bookmarkId)
-        .map(ResponseEntity::ok)
-        .orElseGet(() -> ResponseEntity.notFound().build());
-  }
+    @GetMapping("/{bookmarkId}")
+    ResponseEntity<Bookmark> fetchBookmarkById(@PathVariable String bookmarkId) {
+        log.info("fetching bookmark: " + bookmarkId);
+        return bookmarkService.fetchBookmarkById(bookmarkId).map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
-  @PostMapping(
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  ResponseEntity<Bookmark> addBookmark(@RequestBody Bookmark bookmarkPayload) {
-    log.info("payload received: " + bookmarkPayload);
+    @PostMapping(
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Bookmark> addBookmark(@RequestBody Bookmark bookmarkPayload) {
+        log.info("payload received: " + bookmarkPayload);
+        Bookmark bookmark = bookmarkService.addBookmark(bookmarkPayload);
+        return ResponseEntity.created(URI.create("/" + bookmark.getId())).body(bookmark);
+    }
 
-    Bookmark addedBookmark = bookmarkRepository.save(bookmarkPayload);
-    log.info("added bookmark: " + addedBookmark);
+    @PutMapping(value = "/{bookmarkId}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Bookmark> updateCompleteBookmark(@PathVariable String bookmarkId,
+                                                    @RequestBody Bookmark bookmarkPayload) {
+        log.info("payload received: " + bookmarkPayload);
+        return bookmarkService.updateCompleteBookmark(bookmarkId, bookmarkPayload)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
-    return ResponseEntity.created(URI.create("/" + addedBookmark.getId())).body(addedBookmark);
-  }
+    @PatchMapping(
+            value = "/{bookmarkId}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Bookmark> partiallyUpdateBookmark(@PathVariable String bookmarkId,
+                                                     @RequestBody Bookmark bookmarkPayload) {
+        log.info("payload received: " + bookmarkPayload);
+        return bookmarkService.partiallyUpdateBookmark(bookmarkId, bookmarkPayload)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
-  @PutMapping(
-      value = "/{bookmarkId}",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  ResponseEntity<Bookmark> updateCompleteBookmark(
-      @PathVariable String bookmarkId, @RequestBody Bookmark bookmarkPayload) {
-    log.info("payload received: " + bookmarkPayload);
-
-    Optional<Bookmark> bookmarkOptional = bookmarkRepository.findById(bookmarkId);
-
-    if (bookmarkOptional.isEmpty()) return ResponseEntity.notFound().build();
-
-    Bookmark bookmark = bookmarkOptional.get();
-    bookmark.setUrl(bookmarkPayload.getUrl());
-    bookmark.setTitle(bookmarkPayload.getTitle());
-    bookmark.setDescription(bookmarkPayload.getDescription());
-
-    log.info("updating bookmark: " + bookmarkId);
-    return ResponseEntity.ok().body(bookmarkRepository.save(bookmark));
-  }
-
-  @PatchMapping(
-      value = "/{bookmarkId}",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  ResponseEntity<Bookmark> partiallyUpdateBookmark(
-      @PathVariable String bookmarkId, @RequestBody Bookmark bookmarkPayload) {
-    log.info("payload received: " + bookmarkPayload);
-
-    Optional<Bookmark> bookmarkOptional = bookmarkRepository.findById(bookmarkId);
-
-    if (bookmarkOptional.isEmpty()) return ResponseEntity.notFound().build();
-
-    Bookmark bookmark = bookmarkOptional.get();
-    Optional.ofNullable(bookmarkPayload.getUrl()).ifPresent(bookmark::setUrl);
-    Optional.ofNullable(bookmarkPayload.getTitle()).ifPresent(bookmark::setTitle);
-    Optional.ofNullable(bookmarkPayload.getDescription()).ifPresent(bookmark::setDescription);
-
-    log.info("patching bookmark: " + bookmarkId);
-    return ResponseEntity.ok().body(bookmarkRepository.save(bookmark));
-  }
-
-  @DeleteMapping("/{bookmarkId}")
-  ResponseEntity<String> deleteBookmark(@PathVariable String bookmarkId) {
-    log.info("deleting bookmark: " + bookmarkId);
-    bookmarkRepository.deleteById(bookmarkId);
-    return ResponseEntity.noContent().build();
-  }
+    @DeleteMapping("/{bookmarkId}")
+    ResponseEntity<String> deleteBookmark(@PathVariable String bookmarkId) {
+        bookmarkService.deleteBookmark(bookmarkId);
+        return ResponseEntity.noContent().build();
+    }
 }
