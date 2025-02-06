@@ -54,7 +54,7 @@ public class BookmarkService {
     }
 
     public Optional<Bookmark> partiallyUpdateBookmark(
-            @PathVariable String bookmarkId, @RequestBody com.example.restapi.entities.Bookmark bookmarkPayload) {
+            @PathVariable String bookmarkId, @RequestBody Bookmark bookmarkPayload) {
         Optional<Bookmark> bookmarkOptional = bookmarkRepository.findById(bookmarkId);
 
         if (bookmarkOptional.isEmpty()) return bookmarkOptional;
