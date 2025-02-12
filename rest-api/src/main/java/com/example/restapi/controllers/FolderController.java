@@ -1,6 +1,7 @@
 package com.example.restapi.controllers;
 
 import com.example.restapi.entities.Folder;
+import com.example.restapi.response.CompleteFolder;
 import com.example.restapi.services.FolderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
@@ -24,7 +25,7 @@ public class FolderController {
   }
 
   @GetMapping("/{folderId}")
-  ResponseEntity<Folder> fetchFolderById(@PathVariable String folderId) {
+  ResponseEntity<CompleteFolder> fetchFolderById(@PathVariable String folderId) {
     log.info("fetching folder: " + folderId);
     return folderService
         .fetchFolderById(folderId)

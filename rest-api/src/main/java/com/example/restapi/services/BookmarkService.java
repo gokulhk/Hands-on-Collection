@@ -32,6 +32,11 @@ public class BookmarkService {
         return bookmarkRepository.findById(bookmarkId);
     }
 
+  public List<Bookmark> fetchBookmarkByIds(List<String> bookmarkIds) {
+    log.info("fetching bookmark ids: " + bookmarkIds);
+    return (List<Bookmark>) bookmarkRepository.findAllById(bookmarkIds);
+  }
+
     public Bookmark addBookmark(Bookmark bookmarkPayload) {
         Bookmark addedBookmark = bookmarkRepository.save(bookmarkPayload);
         log.info("added bookmark: " + addedBookmark);
