@@ -32,7 +32,7 @@ class FolderControllerTest {
   @MockBean private FolderService folderService;
 
   @Test
-  void fetchBookmarks_shouldReturnListOfBookmarks() throws Exception {
+  void fetchFolders_shouldReturnListOfFolders() throws Exception {
     when(folderService.fetchFolders()).thenReturn(getSampleFolders());
 
     mockMvc
@@ -43,7 +43,7 @@ class FolderControllerTest {
   }
 
   @Test
-  void fetchBookmarkById_shouldReturnBookmark() throws Exception {
+  void fetchFolderById_shouldReturnCompleteFolder() throws Exception {
     CompleteFolder completeFolder =
         CompleteFolder.builder()
             .folderId("1234")
@@ -67,7 +67,7 @@ class FolderControllerTest {
   }
 
   @Test
-  void addBookmark_shouldCreateAndReturnBookmark() throws Exception {
+  void addFolder_shouldCreateAndReturnFolder() throws Exception {
     when(folderService.addFolder(any(Folder.class))).thenReturn(getSampleFolders().getFirst());
 
     String requestPayload =
@@ -88,7 +88,7 @@ class FolderControllerTest {
   }
 
   @Test
-  void updateCompleteBookmark_shouldUpdateAndReturnBookmark() throws Exception {
+  void updateCompleteFolder_shouldUpdateAndReturnFolder() throws Exception {
     Folder updatedFolder =
         new Folder("1", "UpdatedName", List.of("bookmarkId_4"), Instant.now(), Instant.now());
 
@@ -137,7 +137,7 @@ class FolderControllerTest {
   }
 
   @Test
-  void deleteBookmark_shouldDeleteBookmark() throws Exception {
+  void deleteFolder_shouldDeleteFolder() throws Exception {
     Mockito.doNothing().when(folderService).deleteFolder("1");
 
     mockMvc
