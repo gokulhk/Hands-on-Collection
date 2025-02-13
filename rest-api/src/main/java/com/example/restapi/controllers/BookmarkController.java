@@ -45,7 +45,7 @@ public class BookmarkController {
     bookmarkPayloadValidator.validate(bookmarkPayload, validationResult);
     if (validationResult.hasErrors()) {
       return ResponseEntity.badRequest()
-          .body(CommonUtils.getBindingResultErrorsAsKeyValuePairs(validationResult));
+          .body(CommonUtils.constructValidationErrorResponse(validationResult));
     }
 
     Bookmark bookmark = bookmarkService.addBookmark(bookmarkPayload);
@@ -62,7 +62,7 @@ public class BookmarkController {
     bookmarkPayloadValidator.validate(bookmarkPayload, validationResult);
     if (validationResult.hasErrors()) {
       return ResponseEntity.badRequest()
-          .body(CommonUtils.getBindingResultErrorsAsKeyValuePairs(validationResult));
+          .body(CommonUtils.constructValidationErrorResponse(validationResult));
     }
 
     return bookmarkService

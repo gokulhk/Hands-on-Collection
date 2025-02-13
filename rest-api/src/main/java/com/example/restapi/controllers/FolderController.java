@@ -45,7 +45,7 @@ public class FolderController {
     folderPayloadValidator.validate(folderPayload, validationResult);
     if (validationResult.hasErrors()) {
       return ResponseEntity.badRequest()
-          .body(CommonUtils.getBindingResultErrorsAsKeyValuePairs(validationResult));
+          .body(CommonUtils.constructValidationErrorResponse(validationResult));
     }
 
     Folder folder = folderService.addFolder(folderPayload);
@@ -62,7 +62,7 @@ public class FolderController {
     folderPayloadValidator.validate(folderPayload, validationResult);
     if (validationResult.hasErrors()) {
       return ResponseEntity.badRequest()
-          .body(CommonUtils.getBindingResultErrorsAsKeyValuePairs(validationResult));
+          .body(CommonUtils.constructValidationErrorResponse(validationResult));
     }
 
     return folderService

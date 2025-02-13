@@ -13,8 +13,7 @@ public class CommonUtils {
 
   private CommonUtils() {}
 
-  public static Map<String, Object> getBindingResultErrorsAsKeyValuePairs(
-      BindingResult bindingResult) {
+  public static Map<String, Object> constructValidationErrorResponse(BindingResult bindingResult) {
     try {
       Map<String, Object> errorResult = new HashMap<>();
 
