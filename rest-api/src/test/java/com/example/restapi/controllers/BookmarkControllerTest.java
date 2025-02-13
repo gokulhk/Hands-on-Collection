@@ -1,7 +1,7 @@
 package com.example.restapi.controllers;
 
 import com.example.restapi.services.BookmarkService;
-import com.example.restapi.validators.bookmark.BookmarkPostPayloadValidator;
+import com.example.restapi.validators.bookmark.BookmarkPayloadValidator;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import com.example.restapi.entities.Bookmark;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ class BookmarkControllerTest {
     private BookmarkService bookmarkService;
 
     @MockBean
-    private BookmarkPostPayloadValidator bookmarkPostPayloadValidator;
+    private BookmarkPayloadValidator bookmarkPayloadValidator;
 
     @Test
     void fetchBookmarks_shouldReturnListOfBookmarks() throws Exception {

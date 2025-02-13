@@ -3,10 +3,9 @@ package com.example.restapi.controllers;
 import com.example.restapi.entities.Bookmark;
 import com.example.restapi.services.BookmarkService;
 import com.example.restapi.util.CommonUtils;
-import com.example.restapi.validators.bookmark.BookmarkPostPayloadValidator;
+import com.example.restapi.validators.bookmark.BookmarkPayloadValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +21,7 @@ public class BookmarkController {
 
   private final BookmarkService bookmarkService;
 
-  private final BookmarkPostPayloadValidator bookmarkPostPayloadValidator;
+  private final BookmarkPayloadValidator bookmarkPayloadValidator;
 
   @GetMapping
   ResponseEntity<List<Bookmark>> fetchBookmarks() {
@@ -40,26 +39,31 @@ public class BookmarkController {
 
   @PostMapping
   ResponseEntity<?> addBookmark(
-       @RequestBody Bookmark bookmarkPayload, BindingResult validationResult) {
+      @RequestBody Bookmark bookmarkPayload, BindingResult validationResult) {
+    log.info("payload received: " + bookmarkPayload);
 
-    bookmarkPostPayloadValidator.validate(bookmarkPayload, validationResult);
+    bookmarkPayloadValidator.validate(bookmarkPayload, validationResult);
     if (validationResult.hasErrors()) {
       return ResponseEntity.badRequest()
           .body(CommonUtils.getBindingResultErrorsAsKeyValuePairs(validationResult));
     }
 
-    log.info("payload received: " + bookmarkPayload);
     Bookmark bookmark = bookmarkService.addBookmark(bookmarkPayload);
     return ResponseEntity.created(URI.create("/" + bookmark.getId())).body(bookmark);
   }
 
-  @PutMapping(
-      value = "/{bookmarkId}",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @PutMapping(value = "/{bookmarkId}")
   ResponseEntity<?> updateCompleteBookmark(
-      @PathVariable String bookmarkId, @RequestBody Bookmark bookmarkPayload) {
+      @PathVariable String bookmarkId,
+      @RequestBody Bookmark bookmarkPayload,
+      BindingResult validationResult) {
     log.info("payload received: " + bookmarkPayload);
+
+    bookmarkPayloadValidator.validate(bookmarkPayload, validationResult);
+    if (validationResult.hasErrors()) {
+      return ResponseEntity.badRequest()
+          .body(CommonUtils.getBindingResultErrorsAsKeyValuePairs(validationResult));
+    }
 
     return bookmarkService
         .updateCompleteBookmark(bookmarkId, bookmarkPayload)
@@ -67,10 +71,7 @@ public class BookmarkController {
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
-  @PatchMapping(
-      value = "/{bookmarkId}",
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
+  @PatchMapping(value = "/{bookmarkId}")
   ResponseEntity<Bookmark> partiallyUpdateBookmark(
       @PathVariable String bookmarkId, @RequestBody Bookmark bookmarkPayload) {
     log.info("payload received: " + bookmarkPayload);

@@ -8,7 +8,7 @@ import org.springframework.validation.Validator;
 import java.util.Objects;
 
 @Component
-public class BookmarkPostPayloadValidator implements Validator {
+public class BookmarkPayloadValidator implements Validator {
 
   @Override
   public boolean supports(Class<?> clazz) {
@@ -19,9 +19,9 @@ public class BookmarkPostPayloadValidator implements Validator {
   public void validate(Object target, Errors errors) {
     Bookmark bookmark = (Bookmark) target;
     if (Objects.isNull(bookmark.getTitle()) || bookmark.getTitle().isBlank())
-      errors.rejectValue("title", "", "title is mandatory.");
+      errors.rejectValue("title", "missing_mandatory_field", "title is mandatory.");
 
     if (Objects.isNull(bookmark.getUrl()) || bookmark.getUrl().isBlank())
-      errors.rejectValue("url", "", "url is mandatory.");
+      errors.rejectValue("url", "missing_mandatory_field", "url is mandatory.");
   }
 }

@@ -3,6 +3,7 @@ package com.example.restapi.util;
 import lombok.extern.java.Log;
 import org.springframework.validation.BindingResult;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -10,27 +11,30 @@ import java.util.logging.Level;
 @Log
 public class CommonUtils {
 
-  public static Map<String, String> getBindingResultErrorsAsKeyValuePairs(
+  private CommonUtils() {}
+
+  public static Map<String, Object> getBindingResultErrorsAsKeyValuePairs(
       BindingResult bindingResult) {
     try {
-      Map<String, String> errorResult = new HashMap<>();
+      Map<String, Object> errorResult = new HashMap<>();
+
+      ArrayList<Map<String, String>> errorList = new ArrayList<>();
       bindingResult
           .getFieldErrors()
           .forEach(
               fieldError -> {
-                if (errorResult.containsKey(fieldError.getField())) {
-                  errorResult.put(
-                      fieldError.getField(),
-                      errorResult.get(fieldError.getField())
-                          + ","
-                          + fieldError.getDefaultMessage());
-                } else {
-                  errorResult.put(fieldError.getField(), fieldError.getDefaultMessage());
-                }
+                Map<String, String> errorInfo = new HashMap<>();
+                errorInfo.put("field", fieldError.getField());
+                errorInfo.put("message", fieldError.getDefaultMessage());
+                errorInfo.put("code", fieldError.getCode());
+                errorList.add(errorInfo);
               });
+
+      errorResult.put("message", "Validation failed");
+      errorResult.put("errors", errorList);
       return errorResult;
     } catch (Exception e) {
-      log.log(Level.SEVERE, "exception converting bindingResult errors to json: ", e);
+      log.log(Level.SEVERE, "exception processing bindingResult errors: ", e);
     }
     return new HashMap<>();
   }
