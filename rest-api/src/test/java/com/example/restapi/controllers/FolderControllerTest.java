@@ -4,6 +4,7 @@ import com.example.restapi.entities.Bookmark;
 import com.example.restapi.entities.Folder;
 import com.example.restapi.response.CompleteFolder;
 import com.example.restapi.services.FolderService;
+import com.example.restapi.validators.folder.FolderPayloadValidator;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,8 @@ class FolderControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockBean private FolderService folderService;
+
+  @MockBean private FolderPayloadValidator folderPayloadValidator;
 
   @Test
   void fetchFolders_shouldReturnListOfFolders() throws Exception {

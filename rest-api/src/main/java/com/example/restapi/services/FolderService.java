@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +56,10 @@ public class FolderService {
 
     Folder folder = folderOptional.get();
     folder.setName(folderPayload.getName());
-    folder.setBookmarkIds(folderPayload.getBookmarkIds().stream().distinct().toList());
+    folder.setBookmarkIds(
+        folderPayload.getBookmarkIds().stream()
+            .distinct()
+            .collect(Collectors.toCollection(ArrayList::new)));
 
     log.info("updating folder: " + folderId);
     return Optional.of(folderRepository.save(folder));
