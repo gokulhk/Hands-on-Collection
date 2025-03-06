@@ -1,20 +1,22 @@
 package com.example.restapi.services;
 
 import com.example.restapi.entities.Folder;
-
+import com.example.restapi.repositories.FolderPagingAndSortingRepository;
 import com.example.restapi.repositories.FolderRepository;
 import com.example.restapi.response.CompleteFolder;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 @RequiredArgsConstructor
@@ -22,46 +24,46 @@ import java.util.stream.Collectors;
 public class FolderService {
 
   private final FolderRepository folderRepository;
+  private final FolderPagingAndSortingRepository folderPagingAndSortingRepository;
+
   private final BookmarkService bookmarkService;
 
   public List<Folder> fetchFolders(HttpServletRequest request) {
     Optional<String> queryOptional = Optional.ofNullable(request.getParameter("q"));
+    Optional<String> sortByOptional = Optional.ofNullable(request.getParameter("sort"));
 
-    Optional<String> sortOptional = Optional.ofNullable(request.getParameter("sort"));
+    String sortBy = sortByOptional.map(val -> val.split(":")[0]).orElse("creationTimestamp");
+    Sort.Direction sortOrder =
+        sortByOptional
+            .filter(val -> val.contains(":desc"))
+            .map(val -> Sort.Direction.DESC)
+            .orElse(Sort.Direction.ASC);
 
+    int offset =
+        Optional.ofNullable(request.getParameter("offset"))
+            .map(Integer::parseInt)
+            .filter(val -> val >= 0 && val <= 200)
+            .orElse(0);
+    int limit =
+        Optional.ofNullable(request.getParameter("limit"))
+            .map(Integer::parseInt)
+            .filter(val -> val >= 1 && val <= 30)
+            .orElse(10);
 
     List<Folder> folderList = new ArrayList<>();
 
+    Pageable pageable = PageRequest.of(offset, limit, Sort.by(sortOrder, sortBy));
+
     if (queryOptional.isPresent())
-      folderRepository
-          .findByNameContainingIgnoreCase(queryOptional.get())
+      folderPagingAndSortingRepository
+          .findByNameContainingIgnoreCase(pageable, queryOptional.get())
           .iterator()
           .forEachRemaining(folderList::add);
-    else folderRepository.findAll().iterator().forEachRemaining(folderList::add);
-
-    if (sortOptional.isPresent())
-      folderList =
-          folderList.stream()
-              .sorted(
-                  (folder1, folder2) ->
-                      switch (sortOptional.get().toLowerCase()) {
-                        case "name:asc", "name" -> folder1.getName().compareTo(folder2.getName());
-                        case "name:desc" -> folder2.getName().compareTo(folder1.getName());
-                        case "created:asc", "created" ->
-                            folder1
-                                .getCreationTimestamp()
-                                .compareTo(folder2.getCreationTimestamp());
-                        case "created:desc" ->
-                            folder2
-                                .getCreationTimestamp()
-                                .compareTo(folder1.getCreationTimestamp());
-                        case "updated:asc", "updated" ->
-                            folder1.getUpdatedTimestamp().compareTo(folder2.getUpdatedTimestamp());
-                        case "updated:desc" ->
-                            folder2.getUpdatedTimestamp().compareTo(folder1.getUpdatedTimestamp());
-                        default -> 0;
-                      })
-              .toList();
+    else
+      folderPagingAndSortingRepository
+          .findAll(pageable)
+          .iterator()
+          .forEachRemaining(folderList::add);
 
     log.info("fetched folders: " + folderList);
     return folderList;
