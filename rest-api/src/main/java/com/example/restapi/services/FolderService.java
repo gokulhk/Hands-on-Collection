@@ -4,6 +4,7 @@ import com.example.restapi.entities.Folder;
 
 import com.example.restapi.repositories.FolderRepository;
 import com.example.restapi.response.CompleteFolder;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.stereotype.Service;
@@ -23,9 +24,18 @@ public class FolderService {
   private final FolderRepository folderRepository;
   private final BookmarkService bookmarkService;
 
-  public List<Folder> fetchFolders() {
+  public List<Folder> fetchFolders(HttpServletRequest request) {
+    Optional<String> queryOptional = Optional.ofNullable(request.getParameter("q"));
+
     List<Folder> folderList = new ArrayList<>();
-    folderRepository.findAll().iterator().forEachRemaining(folderList::add);
+
+    if (queryOptional.isPresent())
+      folderRepository
+          .findByNameContainingIgnoreCase(queryOptional.get())
+          .iterator()
+          .forEachRemaining(folderList::add);
+    else folderRepository.findAll().iterator().forEachRemaining(folderList::add);
+
     log.info("fetched folders: " + folderList);
     return folderList;
   }

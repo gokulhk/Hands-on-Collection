@@ -5,4 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface FolderRepository extends CrudRepository<Folder, String> {}
+public interface FolderRepository extends CrudRepository<Folder, String> {
+
+  Iterable<Folder> findByNameContainingIgnoreCase(String name);
+}
