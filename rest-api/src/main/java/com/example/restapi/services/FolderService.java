@@ -27,6 +27,9 @@ public class FolderService {
   public List<Folder> fetchFolders(HttpServletRequest request) {
     Optional<String> queryOptional = Optional.ofNullable(request.getParameter("q"));
 
+    Optional<String> sortOptional = Optional.ofNullable(request.getParameter("sort"));
+
+
     List<Folder> folderList = new ArrayList<>();
 
     if (queryOptional.isPresent())
@@ -35,6 +38,30 @@ public class FolderService {
           .iterator()
           .forEachRemaining(folderList::add);
     else folderRepository.findAll().iterator().forEachRemaining(folderList::add);
+
+    if (sortOptional.isPresent())
+      folderList =
+          folderList.stream()
+              .sorted(
+                  (folder1, folder2) ->
+                      switch (sortOptional.get().toLowerCase()) {
+                        case "name:asc", "name" -> folder1.getName().compareTo(folder2.getName());
+                        case "name:desc" -> folder2.getName().compareTo(folder1.getName());
+                        case "created:asc", "created" ->
+                            folder1
+                                .getCreationTimestamp()
+                                .compareTo(folder2.getCreationTimestamp());
+                        case "created:desc" ->
+                            folder2
+                                .getCreationTimestamp()
+                                .compareTo(folder1.getCreationTimestamp());
+                        case "updated:asc", "updated" ->
+                            folder1.getUpdatedTimestamp().compareTo(folder2.getUpdatedTimestamp());
+                        case "updated:desc" ->
+                            folder2.getUpdatedTimestamp().compareTo(folder1.getUpdatedTimestamp());
+                        default -> 0;
+                      })
+              .toList();
 
     log.info("fetched folders: " + folderList);
     return folderList;
