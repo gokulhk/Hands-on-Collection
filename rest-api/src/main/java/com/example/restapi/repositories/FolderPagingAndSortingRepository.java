@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FolderPagingAndSortingRepository
     extends PagingAndSortingRepository<Folder, String> {
-  Page<Folder> findByNameContainingIgnoreCase(Pageable pageable, String name);
+  Page<Folder> findByNameContainingIgnoreCase(Pageable pageable, String searchTerm);
 }
