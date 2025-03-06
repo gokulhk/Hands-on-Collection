@@ -3,12 +3,11 @@ package com.example.restapi.services;
 import static com.example.restapi.util.CommonUtils.*;
 
 import com.example.restapi.entities.Bookmark;
+import com.example.restapi.helpers.BookmarkHelper;
 import com.example.restapi.repositories.BookmarkPagingAndSortingRepository;
 import com.example.restapi.repositories.BookmarkRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.data.domain.PageRequest;
@@ -25,29 +24,19 @@ public class BookmarkService {
 
   private final BookmarkRepository bookmarkRepository;
 
+  private final BookmarkHelper bookmarkHelper;
+
   private final BookmarkPagingAndSortingRepository bookmarkPagingAndSortingRepository;
 
   public List<Bookmark> fetchBookmarks(HttpServletRequest request) {
-    Optional<String> queryOptional = Optional.ofNullable(request.getParameter("q"));
-
     List<Bookmark> bookmarks = new ArrayList<>();
 
-    Pageable pageable =
-        PageRequest.of(
-            getOffsetParam(request, 0, 200, 0),
-            getLimitParam(request, 1, 30, 10),
-            Sort.by(getSortingOrder(request), getSortByParam(request).orElse("creationTimestamp")));
-
-    if (queryOptional.isPresent())
-      bookmarkPagingAndSortingRepository
-          .findByTitleContainingIgnoreCase(pageable, queryOptional.get())
-          .iterator()
-          .forEachRemaining(bookmarks::add);
-    else
-      bookmarkPagingAndSortingRepository
-          .findAll(pageable)
-          .iterator()
-          .forEachRemaining(bookmarks::add);
+    bookmarkPagingAndSortingRepository
+        .findAll(
+            bookmarkHelper.constructQuerySpecification(request),
+            bookmarkHelper.constructPaginationConfig(request))
+        .iterator()
+        .forEachRemaining(bookmarks::add);
 
     log.info("fetched bookmarks: " + bookmarks);
     return bookmarks;
