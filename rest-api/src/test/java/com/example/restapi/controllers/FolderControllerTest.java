@@ -39,7 +39,7 @@ class FolderControllerTest {
 
   @Test
   void fetchFolders_shouldReturnListOfFolders() throws Exception {
-    when(folderService.fetchFolders(httpServletRequest)).thenReturn(getSampleFolders());
+    when(folderService.fetchFolders(any(HttpServletRequest.class))).thenReturn(getSampleFolders());
 
     mockMvc
         .perform(MockMvcRequestBuilders.get("/api/v1/folders"))

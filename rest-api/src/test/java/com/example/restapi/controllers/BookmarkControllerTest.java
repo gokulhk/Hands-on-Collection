@@ -35,12 +35,17 @@ class BookmarkControllerTest {
 
   @MockBean HttpServletRequest httpServletRequest;
 
-    @Test
-    void fetchBookmarks_shouldReturnListOfBookmarks() throws Exception {
-        when(bookmarkService.fetchBookmarks(httpServletRequest)).thenReturn(getSampleBookmarks());
+  @Test
+  void fetchBookmarks_shouldReturnListOfBookmarks() throws Exception {
+    when(bookmarkService.fetchBookmarks(any(HttpServletRequest.class)))
+        .thenReturn(getSampleBookmarks());
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/bookmarks")).andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value("1")).andExpect(jsonPath("$[1].id").value("2"));
-    }
+    mockMvc
+        .perform(MockMvcRequestBuilders.get("/api/v1/bookmarks"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value("1"))
+        .andExpect(jsonPath("$[1].id").value("2"));
+  }
 
     @Test
     void fetchBookmarkById_shouldReturnBookmark() throws Exception {
