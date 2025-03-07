@@ -4,6 +4,7 @@ import com.example.restapi.entities.Bookmark;
 import com.example.restapi.services.BookmarkService;
 import com.example.restapi.util.CommonUtils;
 import com.example.restapi.validators.bookmark.BookmarkPayloadValidator;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,8 @@ public class BookmarkController {
   private final BookmarkPayloadValidator bookmarkPayloadValidator;
 
   @GetMapping
-  ResponseEntity<List<Bookmark>> fetchBookmarks() {
-    return ResponseEntity.ok(bookmarkService.fetchBookmarks());
+  ResponseEntity<List<Bookmark>> fetchBookmarks(HttpServletRequest request) {
+    return ResponseEntity.ok(bookmarkService.fetchBookmarks(request));
   }
 
   @GetMapping("/{bookmarkId}")

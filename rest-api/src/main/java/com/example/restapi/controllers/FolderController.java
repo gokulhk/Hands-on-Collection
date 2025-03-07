@@ -5,6 +5,7 @@ import com.example.restapi.response.CompleteFolder;
 import com.example.restapi.services.FolderService;
 import com.example.restapi.util.CommonUtils;
 import com.example.restapi.validators.folder.FolderPayloadValidator;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +26,8 @@ public class FolderController {
   private final FolderPayloadValidator folderPayloadValidator;
 
   @GetMapping
-  ResponseEntity<List<Folder>> fetchFolders() {
-    return ResponseEntity.ok(folderService.fetchFolders());
+  ResponseEntity<List<Folder>> fetchFolders(HttpServletRequest request) {
+    return ResponseEntity.ok(folderService.fetchFolders(request));
   }
 
   @GetMapping("/{folderId}")

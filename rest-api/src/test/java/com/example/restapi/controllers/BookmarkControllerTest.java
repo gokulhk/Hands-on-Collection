@@ -2,6 +2,7 @@ package com.example.restapi.controllers;
 
 import com.example.restapi.services.BookmarkService;
 import com.example.restapi.validators.bookmark.BookmarkPayloadValidator;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import com.example.restapi.entities.Bookmark;
 import org.junit.jupiter.api.Test;
@@ -32,12 +33,19 @@ class BookmarkControllerTest {
     @MockBean
     private BookmarkPayloadValidator bookmarkPayloadValidator;
 
-    @Test
-    void fetchBookmarks_shouldReturnListOfBookmarks() throws Exception {
-        when(bookmarkService.fetchBookmarks()).thenReturn(getSampleBookmarks());
+  @MockBean HttpServletRequest httpServletRequest;
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/bookmarks")).andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value("1")).andExpect(jsonPath("$[1].id").value("2"));
-    }
+  @Test
+  void fetchBookmarks_shouldReturnListOfBookmarks() throws Exception {
+    when(bookmarkService.fetchBookmarks(any(HttpServletRequest.class)))
+        .thenReturn(getSampleBookmarks());
+
+    mockMvc
+        .perform(MockMvcRequestBuilders.get("/api/v1/bookmarks"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value("1"))
+        .andExpect(jsonPath("$[1].id").value("2"));
+  }
 
     @Test
     void fetchBookmarkById_shouldReturnBookmark() throws Exception {

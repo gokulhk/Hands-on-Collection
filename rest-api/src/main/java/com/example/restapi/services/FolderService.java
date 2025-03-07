@@ -1,19 +1,20 @@
 package com.example.restapi.services;
 
 import com.example.restapi.entities.Folder;
-
+import com.example.restapi.helpers.FolderHelper;
 import com.example.restapi.repositories.FolderRepository;
 import com.example.restapi.response.CompleteFolder;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 @RequiredArgsConstructor
@@ -21,11 +22,25 @@ import java.util.stream.Collectors;
 public class FolderService {
 
   private final FolderRepository folderRepository;
+
+  private final FolderHelper folderHelper;
+
   private final BookmarkService bookmarkService;
 
-  public List<Folder> fetchFolders() {
+  public List<Folder> fetchFolders(HttpServletRequest request) {
+    Optional<String> queryOptional = Optional.ofNullable(request.getParameter("q"));
+
     List<Folder> folderList = new ArrayList<>();
-    folderRepository.findAll().iterator().forEachRemaining(folderList::add);
+
+    Pageable pageable = folderHelper.constructPaginationConfig(request);
+
+    if (queryOptional.isPresent())
+      folderRepository
+          .findByNameContainingIgnoreCase(pageable, queryOptional.get())
+          .iterator()
+          .forEachRemaining(folderList::add);
+    else folderRepository.findAll(pageable).iterator().forEachRemaining(folderList::add);
+
     log.info("fetched folders: " + folderList);
     return folderList;
   }
