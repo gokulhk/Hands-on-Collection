@@ -1,6 +1,8 @@
 package com.example.restapi.services;
 
 import com.example.restapi.entities.Bookmark;
+import com.example.restapi.helpers.BookmarkHelper;
+import com.example.restapi.repositories.BookmarkPagingAndSortingRepository;
 import com.example.restapi.repositories.BookmarkRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
@@ -8,6 +10,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -19,25 +24,31 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class BookmarkServiceTest {
-
-  @MockBean private BookmarkRepository bookmarkRepository;
-
-  @MockBean HttpServletRequest httpServletRequest;
-
   @Autowired BookmarkService bookmarkService;
 
-    @Test
-    void fetchBookmarks_shouldReturnListOfBookmarks() {
-    when(bookmarkRepository.findAll()).thenReturn(getSampleBookmarks());
+  @MockBean BookmarkHelper bookmarkHelper;
+  @MockBean private BookmarkRepository bookmarkRepository;
+  @MockBean private BookmarkPagingAndSortingRepository bookmarkPagingAndSortingRepository;
+  @MockBean HttpServletRequest httpServletRequest;
+
+  @Test
+  void fetchBookmarks_shouldReturnListOfBookmarks() {
+    when(bookmarkHelper.constructPaginationConfig(any(HttpServletRequest.class)))
+        .thenReturn(PageRequest.of(0, 1));
+    when(bookmarkHelper.constructQuerySpecification(any(HttpServletRequest.class)))
+        .thenReturn(Specification.where(null));
+
+    when(bookmarkPagingAndSortingRepository.findAll(any(), any(PageRequest.class)))
+        .thenReturn((new PageImpl<>(getSampleBookmarks())));
 
     List<Bookmark> bookmark = bookmarkService.fetchBookmarks(httpServletRequest);
 
-        verify(bookmarkRepository).findAll();
+    verify(bookmarkPagingAndSortingRepository).findAll(any(), any(PageRequest.class));
 
-        assertEquals(2, bookmark.size());
-        assertEquals("1", bookmark.get(0).getId());
-        assertEquals("2", bookmark.get(1).getId());
-    }
+    assertEquals(2, bookmark.size());
+    assertEquals("1", bookmark.get(0).getId());
+    assertEquals("2", bookmark.get(1).getId());
+  }
 
     @Test
     void fetchBookmarkById_shouldReturnBookmark() {
