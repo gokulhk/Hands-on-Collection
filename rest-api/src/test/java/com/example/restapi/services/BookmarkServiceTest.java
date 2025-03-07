@@ -2,6 +2,7 @@ package com.example.restapi.services;
 
 import com.example.restapi.entities.Bookmark;
 import com.example.restapi.repositories.BookmarkRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,18 +20,17 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 class BookmarkServiceTest {
 
-    @MockBean
-    private BookmarkRepository bookmarkRepository;
+  @MockBean private BookmarkRepository bookmarkRepository;
 
-    @Autowired
-    BookmarkService bookmarkService;
+  @MockBean HttpServletRequest httpServletRequest;
 
+  @Autowired BookmarkService bookmarkService;
 
     @Test
     void fetchBookmarks_shouldReturnListOfBookmarks() {
-        when(bookmarkRepository.findAll()).thenReturn(getSampleBookmarks());
+    when(bookmarkRepository.findAll()).thenReturn(getSampleBookmarks());
 
-        List<Bookmark> bookmark = bookmarkService.fetchBookmarks();
+    List<Bookmark> bookmark = bookmarkService.fetchBookmarks(httpServletRequest);
 
         verify(bookmarkRepository).findAll();
 

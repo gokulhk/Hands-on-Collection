@@ -5,6 +5,7 @@ import com.example.restapi.entities.Folder;
 import com.example.restapi.response.CompleteFolder;
 import com.example.restapi.services.FolderService;
 import com.example.restapi.validators.folder.FolderPayloadValidator;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +35,11 @@ class FolderControllerTest {
 
   @MockBean private FolderPayloadValidator folderPayloadValidator;
 
+  @MockBean HttpServletRequest httpServletRequest;
+
   @Test
   void fetchFolders_shouldReturnListOfFolders() throws Exception {
-    when(folderService.fetchFolders()).thenReturn(getSampleFolders());
+    when(folderService.fetchFolders(httpServletRequest)).thenReturn(getSampleFolders());
 
     mockMvc
         .perform(MockMvcRequestBuilders.get("/api/v1/folders"))

@@ -1,39 +1,51 @@
 package com.example.restapi.services;
 
-import com.example.restapi.entities.Folder;
-import com.example.restapi.repositories.FolderRepository;
-import com.example.restapi.response.CompleteFolder;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 
+import com.example.restapi.entities.Folder;
+import com.example.restapi.helpers.FolderHelper;
+import com.example.restapi.repositories.FolderPagingAndSortingRepository;
+import com.example.restapi.repositories.FolderRepository;
+import com.example.restapi.response.CompleteFolder;
+import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+
 @SpringBootTest
 class FolderServiceTest {
+  @Autowired private FolderService folderService;
+
+  @MockBean FolderHelper folderHelper;
+
+  @MockBean private HttpServletRequest httpServletRequest;
 
   @MockBean private FolderRepository folderRepository;
 
-  @Autowired FolderService folderService;
+  @MockBean private FolderPagingAndSortingRepository folderPagingAndSortingRepository;
 
   @Test
   void fetchFolders_shouldReturnListOfFolders() {
-    when(folderRepository.findAll()).thenReturn(getSampleFolders());
+    when(folderHelper.constructPaginationConfig(any(HttpServletRequest.class)))
+        .thenReturn(PageRequest.of(0, 1));
+    when(folderPagingAndSortingRepository.findAll(any(PageRequest.class)))
+        .thenReturn((new PageImpl<>(getSampleFolders())));
 
-    List<Folder> folders = folderService.fetchFolders();
+    List<Folder> folders = folderService.fetchFolders(httpServletRequest);
 
-    verify(folderRepository).findAll();
+    verify(folderPagingAndSortingRepository).findAll(any(PageRequest.class));
 
     assertEquals(2, folders.size());
     assertEquals("1", folders.get(0).getId());
