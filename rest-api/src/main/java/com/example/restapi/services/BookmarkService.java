@@ -2,7 +2,6 @@ package com.example.restapi.services;
 
 import com.example.restapi.entities.Bookmark;
 import com.example.restapi.helpers.BookmarkHelper;
-import com.example.restapi.repositories.BookmarkPagingAndSortingRepository;
 import com.example.restapi.repositories.BookmarkRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -21,12 +20,10 @@ public class BookmarkService {
 
   private final BookmarkHelper bookmarkHelper;
 
-  private final BookmarkPagingAndSortingRepository bookmarkPagingAndSortingRepository;
-
   public List<Bookmark> fetchBookmarks(HttpServletRequest request) {
     List<Bookmark> bookmarks = new ArrayList<>();
 
-    bookmarkPagingAndSortingRepository
+    bookmarkRepository
         .findAll(
             bookmarkHelper.constructQuerySpecification(request),
             bookmarkHelper.constructPaginationConfig(request))

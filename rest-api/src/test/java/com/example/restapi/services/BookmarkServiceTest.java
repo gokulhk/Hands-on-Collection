@@ -2,7 +2,6 @@ package com.example.restapi.services;
 
 import com.example.restapi.entities.Bookmark;
 import com.example.restapi.helpers.BookmarkHelper;
-import com.example.restapi.repositories.BookmarkPagingAndSortingRepository;
 import com.example.restapi.repositories.BookmarkRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,6 @@ class BookmarkServiceTest {
 
   @MockBean BookmarkHelper bookmarkHelper;
   @MockBean private BookmarkRepository bookmarkRepository;
-  @MockBean private BookmarkPagingAndSortingRepository bookmarkPagingAndSortingRepository;
   @MockBean HttpServletRequest httpServletRequest;
 
   @Test
@@ -38,12 +36,12 @@ class BookmarkServiceTest {
     when(bookmarkHelper.constructQuerySpecification(any(HttpServletRequest.class)))
         .thenReturn(Specification.where(null));
 
-    when(bookmarkPagingAndSortingRepository.findAll(any(), any(PageRequest.class)))
+    when(bookmarkRepository.findAll(any(), any(PageRequest.class)))
         .thenReturn((new PageImpl<>(getSampleBookmarks())));
 
     List<Bookmark> bookmark = bookmarkService.fetchBookmarks(httpServletRequest);
 
-    verify(bookmarkPagingAndSortingRepository).findAll(any(), any(PageRequest.class));
+    verify(bookmarkRepository).findAll(any(), any(PageRequest.class));
 
     assertEquals(2, bookmark.size());
     assertEquals("1", bookmark.get(0).getId());

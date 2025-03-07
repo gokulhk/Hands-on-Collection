@@ -2,7 +2,6 @@ package com.example.restapi.services;
 
 import com.example.restapi.entities.Folder;
 import com.example.restapi.helpers.FolderHelper;
-import com.example.restapi.repositories.FolderPagingAndSortingRepository;
 import com.example.restapi.repositories.FolderRepository;
 import com.example.restapi.response.CompleteFolder;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class FolderService {
 
   private final FolderRepository folderRepository;
-  private final FolderPagingAndSortingRepository folderPagingAndSortingRepository;
 
   private final FolderHelper folderHelper;
 
@@ -37,15 +35,11 @@ public class FolderService {
     Pageable pageable = folderHelper.constructPaginationConfig(request);
 
     if (queryOptional.isPresent())
-      folderPagingAndSortingRepository
+      folderRepository
           .findByNameContainingIgnoreCase(pageable, queryOptional.get())
           .iterator()
           .forEachRemaining(folderList::add);
-    else
-      folderPagingAndSortingRepository
-          .findAll(pageable)
-          .iterator()
-          .forEachRemaining(folderList::add);
+    else folderRepository.findAll(pageable).iterator().forEachRemaining(folderList::add);
 
     log.info("fetched folders: " + folderList);
     return folderList;

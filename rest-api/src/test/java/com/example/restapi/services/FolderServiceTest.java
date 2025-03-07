@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 
 import com.example.restapi.entities.Folder;
 import com.example.restapi.helpers.FolderHelper;
-import com.example.restapi.repositories.FolderPagingAndSortingRepository;
 import com.example.restapi.repositories.FolderRepository;
 import com.example.restapi.response.CompleteFolder;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,18 +33,16 @@ class FolderServiceTest {
 
   @MockBean private FolderRepository folderRepository;
 
-  @MockBean private FolderPagingAndSortingRepository folderPagingAndSortingRepository;
-
   @Test
   void fetchFolders_shouldReturnListOfFolders() {
     when(folderHelper.constructPaginationConfig(any(HttpServletRequest.class)))
         .thenReturn(PageRequest.of(0, 1));
-    when(folderPagingAndSortingRepository.findAll(any(PageRequest.class)))
+    when(folderRepository.findAll(any(PageRequest.class)))
         .thenReturn((new PageImpl<>(getSampleFolders())));
 
     List<Folder> folders = folderService.fetchFolders(httpServletRequest);
 
-    verify(folderPagingAndSortingRepository).findAll(any(PageRequest.class));
+    verify(folderRepository).findAll(any(PageRequest.class));
 
     assertEquals(2, folders.size());
     assertEquals("1", folders.get(0).getId());
