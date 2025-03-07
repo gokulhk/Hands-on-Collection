@@ -1,7 +1,5 @@
 package com.example.restapi.services;
 
-import static com.example.restapi.util.CommonUtils.*;
-
 import com.example.restapi.entities.Bookmark;
 import com.example.restapi.helpers.BookmarkHelper;
 import com.example.restapi.repositories.BookmarkPagingAndSortingRepository;
@@ -10,9 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;

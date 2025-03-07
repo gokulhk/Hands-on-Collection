@@ -1,6 +1,7 @@
 package com.example.restapi.services;
 
 import com.example.restapi.entities.Folder;
+import com.example.restapi.helpers.FolderHelper;
 import com.example.restapi.repositories.FolderPagingAndSortingRepository;
 import com.example.restapi.repositories.FolderRepository;
 import com.example.restapi.response.CompleteFolder;
@@ -11,9 +12,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,33 +25,16 @@ public class FolderService {
   private final FolderRepository folderRepository;
   private final FolderPagingAndSortingRepository folderPagingAndSortingRepository;
 
+  private final FolderHelper folderHelper;
+
   private final BookmarkService bookmarkService;
 
   public List<Folder> fetchFolders(HttpServletRequest request) {
     Optional<String> queryOptional = Optional.ofNullable(request.getParameter("q"));
-    Optional<String> sortByOptional = Optional.ofNullable(request.getParameter("sort"));
-
-    String sortBy = sortByOptional.map(val -> val.split(":")[0]).orElse("creationTimestamp");
-    Sort.Direction sortOrder =
-        sortByOptional
-            .filter(val -> val.contains(":desc"))
-            .map(val -> Sort.Direction.DESC)
-            .orElse(Sort.Direction.ASC);
-
-    int offset =
-        Optional.ofNullable(request.getParameter("offset"))
-            .map(Integer::parseInt)
-            .filter(val -> val >= 0 && val <= 200)
-            .orElse(0);
-    int limit =
-        Optional.ofNullable(request.getParameter("limit"))
-            .map(Integer::parseInt)
-            .filter(val -> val >= 1 && val <= 30)
-            .orElse(10);
 
     List<Folder> folderList = new ArrayList<>();
 
-    Pageable pageable = PageRequest.of(offset, limit, Sort.by(sortOrder, sortBy));
+    Pageable pageable = folderHelper.constructPaginationConfig(request);
 
     if (queryOptional.isPresent())
       folderPagingAndSortingRepository
