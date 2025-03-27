@@ -29,7 +29,6 @@ class BookmarkServiceIntegrationTest {
 
   @MockBean BookmarkHelper bookmarkHelper;
   @MockBean HttpServletRequest httpServletRequest;
-  @Autowired BookmarkRepository bookmarkRepository;
 
   static PostgreSQLContainer<?> postgreSQLContainer =
       new PostgreSQLContainer<>("postgres:15")
@@ -127,6 +126,8 @@ class BookmarkServiceIntegrationTest {
 
   @Test
   void deleteBookmark_shouldDeleteBookmark() {
+    assertTrue(bookmarkService.fetchBookmarkById("1").isPresent());
+
     bookmarkService.deleteBookmark("1");
 
     assertTrue(bookmarkService.fetchBookmarkById("1").isEmpty());
