@@ -12,6 +12,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -19,10 +22,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
+//@ContextConfiguration(classes = PostgresTestContainer.class)
 class BookmarkServiceIntegrationTest {
 
   @Autowired BookmarkService bookmarkService;
@@ -30,14 +38,40 @@ class BookmarkServiceIntegrationTest {
   @MockBean BookmarkHelper bookmarkHelper;
   @MockBean HttpServletRequest httpServletRequest;
 
+
   static PostgreSQLContainer<?> postgreSQLContainer =
       new PostgreSQLContainer<>("postgres:15")
           .withDatabaseName("bookmark_db")
           .withUsername("testUser1234")
           .withPassword("test1234#");
 
-  static {
+  @DynamicPropertySource
+  static void registerPgProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+    registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+    registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+    registry.add("spring.datasource.driver-class-name", postgreSQLContainer::getDriverClassName);
+    registry.add("spring.jpa.hibernate.ddl-auto", () -> "update");
+    registry.add("spring.jpa.show-sql", () -> true);
+    registry.add("spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.PostgreSQLDialect");
+    registry.add("spring.jpa.properties.hibernate.dialect.storage_engine", () -> "postgresql");
+    // jakarta.persistence.jdbc.url
+    
+
+  }
+
+  // static {
+  //   postgreSQLContainer.start();
+  // }
+
+  @BeforeAll
+  static void init() {
     postgreSQLContainer.start();
+  }
+
+  @AfterAll
+  static void done() {
+    postgreSQLContainer.stop();
   }
 
   @Test
