@@ -1,49 +1,35 @@
 package com.example.restapi.services;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.restapi.entities.Bookmark;
-import com.example.restapi.helpers.BookmarkHelper;
 import com.example.restapi.repositories.BookmarkRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
+@Testcontainers
 @ActiveProfiles("test")
-//@ContextConfiguration(classes = PostgresTestContainer.class)
 class BookmarkServiceIntegrationTest {
 
   @Autowired BookmarkService bookmarkService;
 
-  @MockBean BookmarkHelper bookmarkHelper;
-  @MockBean HttpServletRequest httpServletRequest;
+  @Autowired BookmarkRepository bookmarkRepository;
 
-
-  static PostgreSQLContainer<?> postgreSQLContainer =
-      new PostgreSQLContainer<>("postgres:15")
-          .withDatabaseName("bookmark_db")
-          .withUsername("testUser1234")
-          .withPassword("test1234#");
+  @Container @ServiceConnection
+  static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15");
 
   @DynamicPropertySource
   static void registerPgProperties(DynamicPropertyRegistry registry) {
@@ -53,57 +39,42 @@ class BookmarkServiceIntegrationTest {
     registry.add("spring.datasource.driver-class-name", postgreSQLContainer::getDriverClassName);
     registry.add("spring.jpa.hibernate.ddl-auto", () -> "update");
     registry.add("spring.jpa.show-sql", () -> true);
-    registry.add("spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.PostgreSQLDialect");
+    registry.add(
+        "spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.PostgreSQLDialect");
     registry.add("spring.jpa.properties.hibernate.dialect.storage_engine", () -> "postgresql");
-    // jakarta.persistence.jdbc.url
-    
-
   }
 
-  // static {
-  //   postgreSQLContainer.start();
-  // }
-
-  @BeforeAll
-  static void init() {
-    postgreSQLContainer.start();
-  }
-
-  @AfterAll
-  static void done() {
-    postgreSQLContainer.stop();
+  @BeforeEach
+  void beforeEach() {
+    bookmarkRepository.deleteAll();
   }
 
   @Test
   void addBookmark_shouldCreateAndReturnBookmark() {
-    Bookmark bookmarkToCreate =
-        new Bookmark(
-            "1", "Title1", "Description1", "http://example.com/1", Instant.now(), Instant.now());
+    Bookmark createdBookmark = bookmarkService.addBookmark(getSampleBookmark());
 
-    Bookmark bookmark = bookmarkService.addBookmark(bookmarkToCreate);
-
-    assertEquals("1", bookmark.getId());
+    assertNotNull(createdBookmark.getId());
   }
 
   @Test
   void fetchBookmarks_shouldReturnListOfBookmarks() {
-    when(bookmarkHelper.constructPaginationConfig(any(HttpServletRequest.class)))
-        .thenReturn(PageRequest.of(0, 1));
-    when(bookmarkHelper.constructQuerySpecification(any(HttpServletRequest.class)))
-        .thenReturn(Specification.where(null));
+    Bookmark createdBookmark = bookmarkService.addBookmark(getSampleBookmark());
 
-    List<Bookmark> bookmark = bookmarkService.fetchBookmarks(httpServletRequest);
+    List<Bookmark> bookmarks =
+        bookmarkService.fetchBookmarks("title", "desc", null, null, PageRequest.of(0, 10));
 
-    assertEquals(2, bookmark.size());
-    assertEquals("1", bookmark.get(0).getId());
+    assertEquals(1, bookmarks.size());
+    assertEquals(createdBookmark.getId(), bookmarks.get(0).getId());
   }
 
   @Test
   void fetchBookmarkById_shouldReturnBookmark() {
-    Optional<Bookmark> bookmark = bookmarkService.fetchBookmarkById("1");
+    Bookmark createdBookmark = bookmarkService.addBookmark(getSampleBookmark());
+
+    Optional<Bookmark> bookmark = bookmarkService.fetchBookmarkById(createdBookmark.getId());
 
     assertTrue(bookmark.isPresent());
-    assertEquals("1", bookmark.get().getId());
+    assertEquals(createdBookmark.getId(), bookmark.get().getId());
   }
 
   @Test
@@ -116,20 +87,19 @@ class BookmarkServiceIntegrationTest {
 
   @Test
   void updateCompleteBookmark_shouldUpdateAndReturnBookmark() {
-    Bookmark updatedBookmark =
-        new Bookmark(
-            "1",
-            "UpdatedTitle",
-            "UpdatedDescription",
-            "http://example.com/updated",
-            Instant.now(),
-            Instant.now());
+    Bookmark createdBookmark = bookmarkService.addBookmark(getSampleBookmark());
+
+    createdBookmark.setTitle("UpdatedTitle");
+    createdBookmark.setDescription("UpdatedDescription");
+    createdBookmark.setUrl("http://example.com/updated");
 
     Optional<Bookmark> bookmarkOptional =
-        bookmarkService.updateCompleteBookmark("1", updatedBookmark);
+        bookmarkService.updateCompleteBookmark(createdBookmark.getId(), createdBookmark);
 
     assertTrue(bookmarkOptional.isPresent());
     assertEquals("UpdatedTitle", bookmarkOptional.get().getTitle());
+    assertEquals("UpdatedDescription", bookmarkOptional.get().getDescription());
+    assertEquals("http://example.com/updated", bookmarkOptional.get().getUrl());
   }
 
   @Test
@@ -142,28 +112,34 @@ class BookmarkServiceIntegrationTest {
 
   @Test
   void partiallyUpdateBookmark_shouldUpdateAndReturnBookmark() {
-    Bookmark updatedBookmark =
-        new Bookmark(
-            "1",
-            "UpdatedTitle",
-            "UpdatedDescription",
-            "http://example.com/updated",
-            Instant.now(),
-            Instant.now());
+    Bookmark createdBookmark = bookmarkService.addBookmark(getSampleBookmark());
+
+    createdBookmark.setTitle("UpdatedTitle");
+    createdBookmark.setUrl("http://example.com/updated");
 
     Optional<Bookmark> bookmarkOptional =
-        bookmarkService.partiallyUpdateBookmark("1", updatedBookmark);
+        bookmarkService.partiallyUpdateBookmark(createdBookmark.getId(), createdBookmark);
 
     assertTrue(bookmarkOptional.isPresent());
     assertEquals("UpdatedTitle", bookmarkOptional.get().getTitle());
+    assertEquals(getSampleBookmark().getDescription(), bookmarkOptional.get().getDescription());
+    assertEquals("http://example.com/updated", bookmarkOptional.get().getUrl());
   }
 
   @Test
   void deleteBookmark_shouldDeleteBookmark() {
-    assertTrue(bookmarkService.fetchBookmarkById("1").isPresent());
+    Bookmark createdBookmark = bookmarkService.addBookmark(getSampleBookmark());
+    assertTrue(bookmarkService.fetchBookmarkById(createdBookmark.getId()).isPresent());
 
-    bookmarkService.deleteBookmark("1");
+    bookmarkService.deleteBookmark(createdBookmark.getId());
+    assertTrue(bookmarkService.fetchBookmarkById(createdBookmark.getId()).isEmpty());
+  }
 
-    assertTrue(bookmarkService.fetchBookmarkById("1").isEmpty());
+  private Bookmark getSampleBookmark() {
+    return Bookmark.builder()
+        .title("Title1")
+        .description("Description1")
+        .url("http://example.com/1")
+        .build();
   }
 }
