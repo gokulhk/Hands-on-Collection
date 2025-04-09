@@ -1,10 +1,12 @@
 package com.example.restapi.services;
 
 import com.example.restapi.entities.Folder;
-import com.example.restapi.helpers.FolderHelper;
 import com.example.restapi.repositories.FolderRepository;
 import com.example.restapi.response.CompleteFolder;
+import com.example.restapi.specifications.FolderSpecification;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,23 +25,18 @@ public class FolderService {
 
   private final FolderRepository folderRepository;
 
-  private final FolderHelper folderHelper;
-
   private final BookmarkService bookmarkService;
 
-  public List<Folder> fetchFolders(HttpServletRequest request) {
-    Optional<String> queryOptional = Optional.ofNullable(request.getParameter("q"));
+  private final FolderSpecification folderSpecification;
 
+  public List<Folder> fetchFolders(
+      String name, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
     List<Folder> folderList = new ArrayList<>();
 
-    Pageable pageable = folderHelper.constructPaginationConfig(request);
-
-    if (queryOptional.isPresent())
-      folderRepository
-          .findByNameContainingIgnoreCase(pageable, queryOptional.get())
-          .iterator()
-          .forEachRemaining(folderList::add);
-    else folderRepository.findAll(pageable).iterator().forEachRemaining(folderList::add);
+    folderRepository
+        .findAll(folderSpecification.filterBy(name, fromDate, toDate), pageable)
+        .iterator()
+        .forEachRemaining(folderList::add);
 
     log.info("fetched folders: " + folderList);
     return folderList;

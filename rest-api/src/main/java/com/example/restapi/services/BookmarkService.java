@@ -1,12 +1,14 @@
 package com.example.restapi.services;
 
 import com.example.restapi.entities.Bookmark;
-import com.example.restapi.helpers.BookmarkHelper;
 import com.example.restapi.repositories.BookmarkRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import com.example.restapi.specifications.BookmarkSpecification;
+
+import java.time.LocalDate;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,15 +20,14 @@ public class BookmarkService {
 
   private final BookmarkRepository bookmarkRepository;
 
-  private final BookmarkHelper bookmarkHelper;
+  private final BookmarkSpecification bookmarkSpecification;
 
-  public List<Bookmark> fetchBookmarks(HttpServletRequest request) {
+  public List<Bookmark> fetchBookmarks(
+      String title, String description, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
     List<Bookmark> bookmarks = new ArrayList<>();
 
     bookmarkRepository
-        .findAll(
-            bookmarkHelper.constructQuerySpecification(request),
-            bookmarkHelper.constructPaginationConfig(request))
+        .findAll(bookmarkSpecification.filterBy(title, description, fromDate, toDate), pageable)
         .iterator()
         .forEachRemaining(bookmarks::add);
 

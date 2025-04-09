@@ -8,11 +8,15 @@ import com.example.restapi.validators.folder.FolderPayloadValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -26,8 +30,13 @@ public class FolderController {
   private final FolderPayloadValidator folderPayloadValidator;
 
   @GetMapping
-  ResponseEntity<List<Folder>> fetchFolders(HttpServletRequest request) {
-    return ResponseEntity.ok(folderService.fetchFolders(request));
+  ResponseEntity<List<Folder>> fetchFolders(
+      HttpServletRequest request,
+      @RequestParam(required = false) String name,
+      @RequestParam(required = false) LocalDate fromDate,
+      @RequestParam(required = false) LocalDate toDate,
+      @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+    return ResponseEntity.ok(folderService.fetchFolders(name, fromDate, toDate, pageable));
   }
 
   @GetMapping("/{folderId}")

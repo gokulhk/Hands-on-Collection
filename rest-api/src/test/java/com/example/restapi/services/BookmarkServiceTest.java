@@ -1,8 +1,8 @@
 package com.example.restapi.services;
 
 import com.example.restapi.entities.Bookmark;
-import com.example.restapi.helpers.BookmarkHelper;
 import com.example.restapi.repositories.BookmarkRepository;
+import com.example.restapi.specifications.BookmarkSpecification;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -11,9 +11,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -25,21 +25,40 @@ import static org.mockito.Mockito.*;
 class BookmarkServiceTest {
   @Autowired BookmarkService bookmarkService;
 
-  @MockBean BookmarkHelper bookmarkHelper;
+  @MockBean
+  BookmarkSpecification bookmarkSpecification;
   @MockBean private BookmarkRepository bookmarkRepository;
   @MockBean HttpServletRequest httpServletRequest;
 
   @Test
   void fetchBookmarks_shouldReturnListOfBookmarks() {
-    when(bookmarkHelper.constructPaginationConfig(any(HttpServletRequest.class)))
-        .thenReturn(PageRequest.of(0, 1));
-    when(bookmarkHelper.constructQuerySpecification(any(HttpServletRequest.class)))
-        .thenReturn(Specification.where(null));
+    when(bookmarkSpecification.filterBy(
+            anyString(),
+            anyString(),
+            any(LocalDate.class),
+            any(LocalDate.class)))
+        .thenReturn(null);
+
 
     when(bookmarkRepository.findAll(any(), any(PageRequest.class)))
         .thenReturn((new PageImpl<>(getSampleBookmarks())));
 
-    List<Bookmark> bookmark = bookmarkService.fetchBookmarks(httpServletRequest);
+    List<Bookmark> bookmark = bookmarkService.fetchBookmarks( 
+            "Title",
+            "Description",
+            LocalDate.now(),
+            LocalDate.now(),
+            PageRequest.of(0, 10));
+
+
+    Mockito.verify(bookmarkSpecification)
+            .filterBy(
+                    anyString(),
+                    anyString(),
+                    any(LocalDate.class),
+                    any(LocalDate.class));
+    Mockito.verify(bookmarkRepository)
+            .findAll(any(), any(PageRequest.class));
 
     verify(bookmarkRepository).findAll(any(), any(PageRequest.class));
 
