@@ -9,11 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +39,7 @@ class BookmarkControllerTest {
 
   @Test
   void fetchBookmarks_shouldReturnListOfBookmarks() throws Exception {
-    when(bookmarkService.fetchBookmarks(any(HttpServletRequest.class)))
+    when(bookmarkService.fetchBookmarks(any(), any(), any(), any(), any(Pageable.class)))
         .thenReturn(getSampleBookmarks());
 
     mockMvc

@@ -49,7 +49,9 @@ public class CommonUtils {
   }
 
   public static Optional<String> getSortByParam(HttpServletRequest request) {
-    return Optional.ofNullable(request.getParameter("sort")).map(val -> val.split(":")[0]);
+    return Optional.ofNullable(request.getParameter("sort"))
+        .filter(val -> !val.isBlank())
+        .map(val -> val.split(":")[0]);
   }
 
   public static int getOffsetParam(

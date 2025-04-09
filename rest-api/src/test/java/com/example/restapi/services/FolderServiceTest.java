@@ -7,11 +7,12 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 
 import com.example.restapi.entities.Folder;
-import com.example.restapi.helpers.FolderHelper;
 import com.example.restapi.repositories.FolderRepository;
 import com.example.restapi.response.CompleteFolder;
+import com.example.restapi.specifications.FolderSpecification;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -27,22 +28,23 @@ import org.springframework.data.domain.PageRequest;
 class FolderServiceTest {
   @Autowired private FolderService folderService;
 
-  @MockBean FolderHelper folderHelper;
-
   @MockBean private HttpServletRequest httpServletRequest;
 
   @MockBean private FolderRepository folderRepository;
 
+  @MockBean private FolderSpecification folderSpecification;
+
   @Test
   void fetchFolders_shouldReturnListOfFolders() {
-    when(folderHelper.constructPaginationConfig(any(HttpServletRequest.class)))
-        .thenReturn(PageRequest.of(0, 1));
-    when(folderRepository.findAll(any(PageRequest.class)))
+    when(folderSpecification.filterBy(any(), any(LocalDate.class), any(LocalDate.class)))
+        .thenReturn(null);
+    when(folderRepository.findAll(any(), any(PageRequest.class)))
         .thenReturn((new PageImpl<>(getSampleFolders())));
 
-    List<Folder> folders = folderService.fetchFolders(httpServletRequest);
+    List<Folder> folders =
+        folderService.fetchFolders("name", LocalDate.now(), LocalDate.now(), PageRequest.of(0, 10));
 
-    verify(folderRepository).findAll(any(PageRequest.class));
+    verify(folderRepository).findAll(any(), any(PageRequest.class));
 
     assertEquals(2, folders.size());
     assertEquals("1", folders.get(0).getId());
