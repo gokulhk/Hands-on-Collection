@@ -1,64 +1,80 @@
 package com.example.restapi.services;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.example.restapi.entities.Folder;
+import com.example.restapi.repositories.FolderRepository;
 import com.example.restapi.response.CompleteFolder;
-import jakarta.servlet.http.HttpServletRequest;
-import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
+@Testcontainers
 class FolderServiceIntegrationTest {
   @Autowired private FolderService folderService;
 
+  @MockBean private BookmarkService bookmarkService;
 
-  @MockBean private HttpServletRequest httpServletRequest;
+  @Autowired FolderRepository folderRepository;
 
-  static PostgreSQLContainer<?> postgreSQLContainer =
-      new PostgreSQLContainer<>("postgres:15")
-          .withDatabaseName("bookmark_db")
-          .withUsername("testUser1234")
-          .withPassword("test1234#");
+  @Container
+  static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15");
 
-  static {
-    postgreSQLContainer.start();
+  @DynamicPropertySource
+  static void registerPgProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+    registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+    registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+    registry.add("spring.datasource.driver-class-name", postgreSQLContainer::getDriverClassName);
+    registry.add("spring.jpa.hibernate.ddl-auto", () -> "update");
+    registry.add("spring.jpa.show-sql", () -> true);
+    registry.add(
+        "spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.PostgreSQLDialect");
+    registry.add("spring.jpa.properties.hibernate.dialect.storage_engine", () -> "postgresql");
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    System.out.println("postgreSQLContainer id: " + postgreSQLContainer.getContainerId());
+    folderRepository.deleteAll();
   }
 
   @Test
   void addFolder_shouldCreateAndReturnFolder() {
-    Folder folder = folderService.addFolder(new Folder());
-
-    assertEquals("1", folder.getId());
+    assertNotNull(folderService.addFolder(getSampleFolder()).getId());
   }
 
-//  @Test
-//  void fetchFolders_shouldReturnListOfFolders() {
-//    when(folderHelper.constructPaginationConfig(any(HttpServletRequest.class)))
-//        .thenReturn(PageRequest.of(0, 1));
-//
-//    List<Folder> folders = folderService.fetchFolders(httpServletRequest);
-//
-//    assertEquals(1, folders.size());
-//    assertEquals("1", folders.get(0).getId());
-//  }
+  @Test
+  void fetchFolders_shouldReturnListOfFolders() {
+    Folder createdFolder = folderRepository.save(getSampleFolder());
+    List<Folder> folders = folderService.fetchFolders("Planet", null, null, PageRequest.of(0, 10));
+
+    assertEquals(1, folders.size());
+    assertEquals(createdFolder.getId(), folders.get(0).getId());
+  }
 
   @Test
   void fetchFolderById_shouldReturnFolder() {
-    Optional<CompleteFolder> completeFolder = folderService.fetchFolderById("1");
+    Folder createdFolder = folderRepository.save(getSampleFolder());
+    when(bookmarkService.fetchBookmarkByIds(anyList())).thenReturn(Collections.emptyList());
+
+    Optional<CompleteFolder> completeFolder = folderService.fetchFolderById(createdFolder.getId());
 
     assertTrue(completeFolder.isPresent());
-    assertEquals("1", completeFolder.get().getFolderId());
+    assertEquals(createdFolder.getId(), completeFolder.get().getFolderId());
   }
 
   @Test
@@ -68,10 +84,13 @@ class FolderServiceIntegrationTest {
 
   @Test
   void updateCompleteFolder_shouldUpdateAndReturnFolder() {
-    Folder updatedFolder =
-        new Folder("1", "UpdatedFolderName", List.of("bookmarkId_1"), Instant.now(), Instant.now());
+    Folder createdFolder = folderRepository.save(getSampleFolder());
 
-    Optional<Folder> folderOptional = folderService.updateCompleteFolder("1", updatedFolder);
+    createdFolder.setName("UpdatedFolderName");
+    createdFolder.setBookmarkIds(List.of("bookmarkId_1"));
+
+    Optional<Folder> folderOptional =
+        folderService.updateCompleteFolder(createdFolder.getId(), createdFolder);
 
     assertTrue(folderOptional.isPresent());
     assertEquals("UpdatedFolderName", folderOptional.get().getName());
@@ -84,10 +103,12 @@ class FolderServiceIntegrationTest {
 
   @Test
   void partiallyUpdateFolder_shouldUpdateAndReturnFolder() {
-    Folder updatedFolder =
-        new Folder("1", "UpdatedFolderName", List.of("bookmarkId_1"), Instant.now(), Instant.now());
+    Folder createdFolder = folderRepository.save(getSampleFolder());
 
-    Optional<Folder> folderOptional = folderService.partiallyUpdateFolder("1", new Folder());
+    createdFolder.setName("UpdatedFolderName");
+
+    Optional<Folder> folderOptional =
+        folderService.partiallyUpdateFolder(createdFolder.getId(), createdFolder);
 
     assertTrue(folderOptional.isPresent());
     assertEquals("UpdatedFolderName", folderOptional.get().getName());
@@ -95,10 +116,14 @@ class FolderServiceIntegrationTest {
 
   @Test
   void deleteFolder_shouldDeleteFolder() {
-    assertTrue(folderService.fetchFolderById("1").isPresent());
+    Folder createdFolder = folderRepository.save(getSampleFolder());
+    assertTrue(folderService.fetchFolderById(createdFolder.getId()).isPresent());
 
-    folderService.deleteFolder("1");
+    folderService.deleteFolder(createdFolder.getId());
+    assertTrue(folderService.fetchFolderById(createdFolder.getId()).isEmpty());
+  }
 
-    assertTrue(folderService.fetchFolderById("1").isEmpty());
+  private Folder getSampleFolder() {
+    return Folder.builder().name("Planet Collection").bookmarkIds(Collections.emptyList()).build();
   }
 }

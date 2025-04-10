@@ -20,7 +20,7 @@ public class FolderSpecification {
       if (Strings.isNotEmpty(name)) {
         predicates.add(
             criteriaBuilder.like(
-                criteriaBuilder.lower(root.get("title")), "%" + name.toLowerCase() + "%"));
+                criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
       }
 
       if (fromDate != null) {
