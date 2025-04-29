@@ -1,7 +1,7 @@
 package com.example.restapi.specifications;
 
-import com.example.restapi.entities.Bookmark;
 import com.example.restapi.entities.Folder;
+import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,9 +18,9 @@ public class FolderSpecification {
       List<Predicate> predicates = new ArrayList<>();
 
       if (Strings.isNotEmpty(name)) {
-        predicates.add(
-            criteriaBuilder.like(
-                criteriaBuilder.lower(root.get("title")), "%" + name.toLowerCase() + "%"));
+        ParameterExpression<String> titleParam =
+            criteriaBuilder.parameter(String.class, "namePattern");
+        predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), titleParam));
       }
 
       if (fromDate != null) {
