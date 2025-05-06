@@ -1,6 +1,7 @@
 package com.example.restapi.specifications;
 
 import com.example.restapi.entities.Bookmark;
+import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Predicate;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,16 +20,16 @@ public class BookmarkSpecification {
       List<Predicate> predicates = new ArrayList<>();
 
       if (Strings.isNotEmpty(title)) {
-        predicates.add(
-            criteriaBuilder.like(
-                criteriaBuilder.lower(root.get("title")), "%" + title.toLowerCase() + "%"));
+        ParameterExpression<String> titleParam =
+            criteriaBuilder.parameter(String.class, "titlePattern");
+        predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), titleParam));
       }
 
       if (Strings.isNotEmpty(description)) {
+        ParameterExpression<String> descParam =
+            criteriaBuilder.parameter(String.class, "descriptionPattern");
         predicates.add(
-            criteriaBuilder.like(
-                criteriaBuilder.lower(root.get("description")),
-                "%" + description.toLowerCase() + "%"));
+            criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), descParam));
       }
       if (fromDate != null) {
         predicates.add(
