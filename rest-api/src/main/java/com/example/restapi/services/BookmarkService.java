@@ -2,30 +2,38 @@ package com.example.restapi.services;
 
 import com.example.restapi.entities.Bookmark;
 import com.example.restapi.repositories.BookmarkRepository;
+import com.example.restapi.specifications.BookmarkSpecification;
 
+import java.time.LocalDate;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Log
 public class BookmarkService {
 
-    private final BookmarkRepository bookmarkRepository;
+  private final BookmarkRepository bookmarkRepository;
 
-    public List<Bookmark> fetchBookmarks() {
-        List<Bookmark> bookmarkList = new ArrayList<>();
-        bookmarkRepository.findAll().iterator().forEachRemaining(bookmarkList::add);
-        log.info("fetched bookmarks: " + bookmarkList);
-        return bookmarkList;
-    }
+  private final BookmarkSpecification bookmarkSpecification;
+
+  public List<Bookmark> fetchBookmarks(
+      String title, String description, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
+    List<Bookmark> bookmarks = new ArrayList<>();
+
+    bookmarkRepository
+        .findAll(bookmarkSpecification.filterBy(title, description, fromDate, toDate), pageable)
+        .iterator()
+        .forEachRemaining(bookmarks::add);
+
+    log.info("fetched bookmarks: " + bookmarks);
+    return bookmarks;
+  }
 
     public Optional<Bookmark> fetchBookmarkById(String bookmarkId) {
         log.info("fetching bookmark id: " + bookmarkId);

@@ -1,19 +1,22 @@
 package com.example.restapi.services;
 
 import com.example.restapi.entities.Folder;
-
 import com.example.restapi.repositories.FolderRepository;
 import com.example.restapi.response.CompleteFolder;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+import com.example.restapi.specifications.FolderSpecification;
+import jakarta.servlet.http.HttpServletRequest;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 @RequiredArgsConstructor
@@ -21,11 +24,20 @@ import java.util.stream.Collectors;
 public class FolderService {
 
   private final FolderRepository folderRepository;
+
   private final BookmarkService bookmarkService;
 
-  public List<Folder> fetchFolders() {
+  private final FolderSpecification folderSpecification;
+
+  public List<Folder> fetchFolders(
+      String name, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
     List<Folder> folderList = new ArrayList<>();
-    folderRepository.findAll().iterator().forEachRemaining(folderList::add);
+
+    folderRepository
+        .findAll(folderSpecification.filterBy(name, fromDate, toDate), pageable)
+        .iterator()
+        .forEachRemaining(folderList::add);
+
     log.info("fetched folders: " + folderList);
     return folderList;
   }

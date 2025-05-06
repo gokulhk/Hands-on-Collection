@@ -1,12 +1,11 @@
 package com.example.restapi.util;
 
-import lombok.extern.java.Log;
-import org.springframework.validation.BindingResult;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
+import lombok.extern.java.Log;
+import org.springframework.validation.BindingResult;
 
 @Log
 public class CommonUtils {

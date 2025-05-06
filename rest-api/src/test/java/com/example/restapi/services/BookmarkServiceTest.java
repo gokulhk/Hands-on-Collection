@@ -2,13 +2,18 @@ package com.example.restapi.services;
 
 import com.example.restapi.entities.Bookmark;
 import com.example.restapi.repositories.BookmarkRepository;
+import com.example.restapi.specifications.BookmarkSpecification;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -18,26 +23,49 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class BookmarkServiceTest {
+  @Autowired BookmarkService bookmarkService;
 
-    @MockBean
-    private BookmarkRepository bookmarkRepository;
+  @MockBean
+  BookmarkSpecification bookmarkSpecification;
+  @MockBean private BookmarkRepository bookmarkRepository;
+  @MockBean HttpServletRequest httpServletRequest;
 
-    @Autowired
-    BookmarkService bookmarkService;
+  @Test
+  void fetchBookmarks_shouldReturnListOfBookmarks() {
+    when(bookmarkSpecification.filterBy(
+            anyString(),
+            anyString(),
+            any(LocalDate.class),
+            any(LocalDate.class)))
+        .thenReturn(null);
 
 
-    @Test
-    void fetchBookmarks_shouldReturnListOfBookmarks() {
-        when(bookmarkRepository.findAll()).thenReturn(getSampleBookmarks());
+    when(bookmarkRepository.findAll(any(), any(PageRequest.class)))
+        .thenReturn((new PageImpl<>(getSampleBookmarks())));
 
-        List<Bookmark> bookmark = bookmarkService.fetchBookmarks();
+    List<Bookmark> bookmark = bookmarkService.fetchBookmarks( 
+            "Title",
+            "Description",
+            LocalDate.now(),
+            LocalDate.now(),
+            PageRequest.of(0, 10));
 
-        verify(bookmarkRepository).findAll();
 
-        assertEquals(2, bookmark.size());
-        assertEquals("1", bookmark.get(0).getId());
-        assertEquals("2", bookmark.get(1).getId());
-    }
+    Mockito.verify(bookmarkSpecification)
+            .filterBy(
+                    anyString(),
+                    anyString(),
+                    any(LocalDate.class),
+                    any(LocalDate.class));
+    Mockito.verify(bookmarkRepository)
+            .findAll(any(), any(PageRequest.class));
+
+    verify(bookmarkRepository).findAll(any(), any(PageRequest.class));
+
+    assertEquals(2, bookmark.size());
+    assertEquals("1", bookmark.get(0).getId());
+    assertEquals("2", bookmark.get(1).getId());
+  }
 
     @Test
     void fetchBookmarkById_shouldReturnBookmark() {

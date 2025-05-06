@@ -26,6 +26,6 @@ public class Bookmark {
   private String url;
   private String description;
 
-  @CreationTimestamp private Instant creationDate;
+  @CreationTimestamp private Instant creationTimestamp;
   @UpdateTimestamp private Instant updatedTimestamp;
 }

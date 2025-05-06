@@ -2,17 +2,20 @@ package com.example.restapi.controllers;
 
 import com.example.restapi.services.BookmarkService;
 import com.example.restapi.validators.bookmark.BookmarkPayloadValidator;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import com.example.restapi.entities.Bookmark;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -32,12 +35,19 @@ class BookmarkControllerTest {
     @MockBean
     private BookmarkPayloadValidator bookmarkPayloadValidator;
 
-    @Test
-    void fetchBookmarks_shouldReturnListOfBookmarks() throws Exception {
-        when(bookmarkService.fetchBookmarks()).thenReturn(getSampleBookmarks());
+  @MockBean HttpServletRequest httpServletRequest;
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/bookmarks")).andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value("1")).andExpect(jsonPath("$[1].id").value("2"));
-    }
+  @Test
+  void fetchBookmarks_shouldReturnListOfBookmarks() throws Exception {
+    when(bookmarkService.fetchBookmarks(any(), any(), any(), any(), any(Pageable.class)))
+        .thenReturn(getSampleBookmarks());
+
+    mockMvc
+        .perform(MockMvcRequestBuilders.get("/api/v1/bookmarks"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value("1"))
+        .andExpect(jsonPath("$[1].id").value("2"));
+  }
 
     @Test
     void fetchBookmarkById_shouldReturnBookmark() throws Exception {
