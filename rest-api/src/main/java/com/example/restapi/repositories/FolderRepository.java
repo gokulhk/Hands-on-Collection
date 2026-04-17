@@ -15,4 +15,6 @@ public interface FolderRepository
         PagingAndSortingRepository<Folder, String>,
         JpaSpecificationExecutor<Folder> {
   Page<Folder> findByNameContainingIgnoreCase(Pageable pageable, String searchTerm);
+
+  void deleteAll();
 }

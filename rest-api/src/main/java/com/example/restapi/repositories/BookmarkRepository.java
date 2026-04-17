@@ -18,4 +18,6 @@ public interface BookmarkRepository
   Page<Bookmark> findByUrlContainingIgnoreCase(Pageable pageable, String searchTerm);
 
   Page<Bookmark> findByDescriptionContainingIgnoreCase(Pageable pageable, String searchTerm);
+
+  void deleteAll();
 }

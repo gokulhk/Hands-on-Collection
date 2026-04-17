@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: Gokulnath
+      validCheckSum: 9:42e90c4d012cece9fcec245c89a4d243
+      changes:
+        - sqlFile:
+            path: insert_bookmarks.sql
+            relativeToChangelogFile: true

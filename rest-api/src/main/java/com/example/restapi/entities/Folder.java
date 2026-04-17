@@ -14,6 +14,7 @@ import java.util.List;
 @ToString
 @Setter
 @Getter
+@Builder
 public class Folder {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -22,6 +23,7 @@ public class Folder {
   private String name;
 
   @ElementCollection
+  @ToString.Exclude
   private List<String> bookmarkIds;
 
   @CreationTimestamp private Instant creationTimestamp;
